@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Track | SHOE MAFIA</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="site-nav"></div>
+<main class="section" style="padding-top:7rem"><div class="container" style="max-width:520px">
+<h1 class="section-title">TRACK ORDER</h1>
+<form id="trackForm" class="glass" style="padding:1.5rem;margin-bottom:1.5rem"><div class="form-group"><label>Order ID</label><input id="orderId" required></div><button class="btn btn-primary" style="width:100%">Track</button></form>
+<div id="trackResult"></div>
+</div></main>
+<div id="site-footer"></div>
+<script src="js/store.js"></script>
+<script src="js/common.js"></script>
+<script>
+SMCommon.renderNav("track.html");
+var pre = new URLSearchParams(location.search).get("id");
+if (pre) document.getElementById("orderId").value = pre;
+function show(id) {
+  var o = ShoeMafiaStore.loadStore().orders.find(function(x) { return x.id === id; });
+  var el = document.getElementById("trackResult");
+  if (!o) { el.innerHTML = "<p style='color:var(--danger)'>Not found</p>"; return; }
+  el.innerHTML = "<div class='glass' style='padding:1.5rem'><h3>"+o.id+"</h3><p style='color:var(--neon);font-weight:700;text-transform:uppercase'>"+o.status+"</p><ul style='margin-top:1rem;color:var(--muted)'>"+(o.trackingNotes||[]).map(function(n){return "<li>"+new Date(n.at).toLocaleString()+" - "+n.status+"</li>";}).join("")+"</ul><p style='margin-top:1rem'>Total: "+ShoeMafiaStore.formatINR(o.total)+"</p></div>";
+}
+if (pre) show(pre);
+document.getElementById("trackForm").onsubmit = function(e) { e.preventDefault(); show(document.getElementById("orderId").value.trim()); };
+</script>
+</body>
+</html>

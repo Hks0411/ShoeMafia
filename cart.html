@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cart | SHOE MAFIA</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="site-nav"></div>
+<main class="section" style="padding-top:7rem"><div class="container"><h1 class="section-title">YOUR BAG</h1><div id="cartContent"></div></div></main>
+<div id="site-footer"></div>
+<script src="js/store.js"></script>
+<script src="js/common.js"></script>
+<script>
+SMCommon.renderNav("cart.html");
+function renderCart() {
+  var cart = SMCommon.getCart(), store = ShoeMafiaStore.loadStore(), el = document.getElementById("cartContent"), total = 0, html = "";
+  if (!cart.length) { el.innerHTML = '<div class="empty-state"><h2>Empty bag</h2><a href="shop.html" class="btn btn-primary">Shop</a></div>'; return; }
+  cart.forEach(function(item, i) {
+    var p = store.products.find(function(x) { return x.id === item.productId; });
+    if (!p) return;
+    var line = ShoeMafiaStore.effectivePrice(p) * item.quantity; total += line;
+    html += '<div class="glass" style="padding:1rem;margin-bottom:1rem;display:flex;gap:1rem;align-items:center"><img src="'+(p.images[0]||'')+'" width="80" height="80" style="object-fit:cover;border-radius:8px"><div style="flex:1"><h3>'+p.name+'</h3><p>Size '+item.size+' x '+item.quantity+'</p><p>'+ShoeMafiaStore.formatINR(line)+'</p></div><button onclick="rm('+i+')">Remove</button></div>';
+  });
+  html += '<p style="font-size:1.25rem;font-weight:700">Total: '+ShoeMafiaStore.formatINR(total)+'</p><a href="checkout.html" class="btn btn-primary">Checkout</a>';
+  el.innerHTML = html;
+}
+window.rm = function(i) { var c = SMCommon.getCart(); c.splice(i,1); SMCommon.setCart(c); renderCart(); };
+renderCart();
+</script>
+</body>
+</html>

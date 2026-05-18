@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin | SHOE MAFIA</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="loginScreen" style="min-height:100vh;display:grid;place-items:center;padding:2rem">
+<form id="loginForm" class="glass" style="padding:2rem;width:min(380px,100%)">
+<h1 class="logo" style="text-align:center">SHOE <span>MAFIA</span></h1>
+<p style="text-align:center;color:var(--muted);margin:1rem 0">Admin</p>
+<div class="form-group"><label>User</label><input id="adminUser" required></div>
+<div class="form-group"><label>Pass</label><input type="password" id="adminPass" required></div>
+<button class="btn btn-primary" style="width:100%">Login</button>
+</form>
+</div>
+<div id="adminApp" class="admin-layout" style="display:none">
+<aside class="admin-sidebar"><p class="logo">ADMIN</p>
+<ul class="admin-nav" id="adminNav">
+<li><button data-panel="dashboard" class="active">Dashboard</button></li>
+<li><button data-panel="products">Products</button></li>
+<li><button data-panel="inventory">Inventory</button></li>
+<li><button data-panel="orders">Orders</button></li>
+<li><button data-panel="pos">POS</button></li>
+<li><button data-panel="coupons">Coupons</button></li>
+<li><button data-panel="banners">Banners</button></li>
+<li><button data-panel="customers">Customers</button></li>
+</ul>
+<button class="btn btn-outline" style="width:100%;margin-top:1rem" id="logoutBtn">Logout</button>
+</aside>
+<main style="padding:1.5rem;overflow:auto">
+<section id="panel-dashboard" class="admin-panel active"><h2>DASHBOARD</h2><div id="dashStats" class="stat-cards"></div><div id="lowStock"></div></section>
+<section id="panel-products" class="admin-panel">
+<h2>PRODUCTS</h2>
+<form id="productForm" class="glass" style="padding:1.5rem;max-width:640px">
+<input type="hidden" id="prodId">
+<div class="form-group"><label>Name *</label><input id="prodName" required></div>
+<div class="form-group"><label>Images (URL per line) *</label><textarea id="prodImages" rows="2" required></textarea></div>
+<div class="form-group"><label>Price *</label><input type="number" id="prodPrice" required></div>
+<div class="form-group"><label>Qty *</label><input type="number" id="prodQty" required></div>
+<div class="form-group"><label>Sizes UK 7:2, UK 8:3</label><input id="prodSizes" placeholder="UK 7:2, UK 8:3"></div>
+<div class="form-group"><label>Description</label><textarea id="prodDesc"></textarea></div>
+<div class="form-group"><label>Category</label><select id="prodCat"></select></div>
+<div class="form-group"><label>Brand</label><select id="prodBrand"></select></div>
+<label><input type="checkbox" id="prodNew"> New</label> <label><input type="checkbox" id="prodTrend"> Trending</label> <label><input type="checkbox" id="prodLimited"> Limited</label>
+<button class="btn btn-primary" style="margin-top:1rem">Save</button>
+</form>
+<table class="data-table" id="productsTable" style="margin-top:1.5rem"><thead><tr><th>Name</th><th>Stock</th><th>Price</th><th></th></tr></thead><tbody></tbody></table>
+</section>
+<section id="panel-inventory" class="admin-panel"><h2>INVENTORY</h2><p style="color:var(--muted)">Online + offline synced.</p><table class="data-table" id="inventoryTable"><thead><tr><th>Product</th><th>Stock</th><th>Status</th></tr></thead><tbody></tbody></table></section>
+<section id="panel-orders" class="admin-panel"><h2>ORDERS</h2><table class="data-table" id="ordersTable"><thead><tr><th>ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></section>
+<section id="panel-pos" class="admin-panel">
+<h2>POS BILLING</h2>
+<div class="glass" style="padding:1.5rem;max-width:500px">
+<input id="posName" placeholder="Customer" style="width:100%;margin-bottom:0.5rem;padding:0.5rem">
+<select id="posProduct" style="width:100%;margin-bottom:0.5rem"></select>
+<select id="posSize" style="width:100%;margin-bottom:0.5rem"></select>
+<input type="number" id="posQty" value="1" min="1" style="width:100%;margin-bottom:0.5rem">
+<button class="btn btn-outline" id="posAdd">Add</button>
+<table class="data-table" id="posCart"><tbody></tbody></table>
+<button class="btn btn-primary" id="posBill" style="margin-top:1rem">Print Invoice</button>
+</div>
+<div id="invoiceArea"></div>
+</section>
+<section id="panel-coupons" class="admin-panel">
+<h2>COUPONS</h2>
+<form id="couponForm" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem">
+<input id="couponCode" placeholder="CODE" required>
+<input type="number" id="couponPct" placeholder="%" required>
+<button class="btn btn-primary">Add</button>
+</form>
+<div id="couponList"></div>
+</section>
+<section id="panel-banners" class="admin-panel">
+<h2>BANNERS</h2>
+<form id="bannerForm" class="glass" style="padding:1.5rem;max-width:500px">
+<div class="form-group"><label>Title</label><input id="banTitle" required></div>
+<div class="form-group"><label>Subtitle</label><input id="banSub"></div>
+<div class="form-group"><label>Image URL</label><input id="banImg" required></div>
+<button class="btn btn-primary">Add Banner</button>
+</form>
+<div id="bannerList" style="margin-top:1rem"></div>
+</section>
+<section id="panel-customers" class="admin-panel">
+<h2>CUSTOMERS</h2>
+<table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Phone</th></tr></thead><tbody id="custBody"></tbody></table>
+</section>
+</main>
+</div>
+<script src="js/store.js"></script>
+<script>
+var SESSION = "sm_admin", posLines = [];
+function logged() { return sessionStorage.getItem(SESSION) === "1"; }
+function show() { document.getElementById("loginScreen").style.display = logged() ? "none" : "grid"; document.getElementById("adminApp").style.display = logged() ? "grid" : "none"; if (logged()) refresh(); }
+document.getElementById("loginForm").onsubmit = function(e) { e.preventDefault(); if (ShoeMafiaStore.verifyAdmin(document.getElementById("adminUser").value, document.getElementById("adminPass").value)) { sessionStorage.setItem(SESSION,"1"); show(); } else alert("Invalid"); };
+document.getElementById("logoutBtn").onclick = function() { sessionStorage.removeItem(SESSION); show(); };
+document.getElementById("adminNav").onclick = function(e) { var b = e.target.closest("button[data-panel]"); if (!b) return; document.querySelectorAll(".admin-nav button,.admin-panel").forEach(function(el){ el.classList.remove("active"); }); b.classList.add("active"); document.getElementById("panel-"+b.dataset.panel).classList.add("active"); };
+function parseSizes(s) { return (s||"").split(",").map(function(p){ var x=p.trim().split(":"); return { size:x[0], quantity:parseInt(x[1],10)||0 }; }).filter(function(x){return x.size;}); }
+document.getElementById("productForm").onsubmit = function(e) { e.preventDefault(); ShoeMafiaStore.addProduct({ id: document.getElementById("prodId").value||undefined, name: document.getElementById("prodName").value, images: document.getElementById("prodImages").value.split("\n").filter(Boolean), price: document.getElementById("prodPrice").value, quantity: document.getElementById("prodQty").value, sizes: parseSizes(document.getElementById("prodSizes").value), description: document.getElementById("prodDesc").value, category: document.getElementById("prodCat").value, brand: document.getElementById("prodBrand").value, isNewArrival: document.getElementById("prodNew").checked, isTrending: document.getElementById("prodTrend").checked, isLimitedEdition: document.getElementById("prodLimited").checked }); alert("Saved"); e.target.reset(); refresh(); };
+function refresh() {
+  var s = ShoeMafiaStore.loadStore();
+  var onRev = s.orders.filter(function(o){return o.status!=="rejected";}).reduce(function(a,o){return a+o.total;},0);
+  var offRev = s.offlineSales.reduce(function(a,x){return a+x.total;},0);
+  document.getElementById("dashStats").innerHTML = "<div class='stat-card glass'><p>Products</p><p class='val'>"+s.products.length+"</p></div><div class='stat-card glass'><p>Revenue</p><p class='val'>"+ShoeMafiaStore.formatINR(onRev+offRev)+"</p></div><div class='stat-card glass'><p>Orders</p><p class='val'>"+s.orders.length+"</p></div><div class='stat-card glass'><p>Pending</p><p class='val'>"+s.orders.filter(function(o){return o.status==='pending';}).length+"</p></div>";
+  document.getElementById("lowStock").innerHTML = s.products.filter(function(p){ var st=ShoeMafiaStore.productStock(p); return st>0&&st<=ShoeMafiaStore.LOW_STOCK; }).map(function(p){return "<p>Low: "+p.name+" ("+ShoeMafiaStore.productStock(p)+")</p>";}).join("")||"<p>Stock OK</p>";
+  document.querySelector("#productsTable tbody").innerHTML = s.products.map(function(p){ return "<tr><td>"+p.name+"</td><td>"+ShoeMafiaStore.productStock(p)+"</td><td>"+ShoeMafiaStore.formatINR(p.price)+"</td><td><button onclick=\"editP('"+p.id+"')\">Edit</button> <button onclick=\"ShoeMafiaStore.deleteProduct('"+p.id+"');refresh()\">Del</button></td></tr>"; }).join("");
+  document.querySelector("#inventoryTable tbody").innerHTML = s.products.map(function(p){ var st=ShoeMafiaStore.productStock(p); return "<tr><td>"+p.name+"</td><td>"+st+"</td><td>"+(st?"In Stock":"Out of Stock")+"</td></tr>"; }).join("");
+  document.querySelector("#ordersTable tbody").innerHTML = s.orders.map(function(o){ return "<tr><td>"+o.id+"</td><td>"+o.customerName+"</td><td>"+ShoeMafiaStore.formatINR(o.total)+"</td><td>"+o.status+"</td><td>"+["accepted","rejected","packed","shipped","delivered"].map(function(st){return "<button onclick=\"ShoeMafiaStore.updateOrderStatus('"+o.id+"','"+st+"');refresh()\">"+st+"</button>";}).join(" ")+"</td></tr>"; }).join("");
+  document.getElementById("posProduct").innerHTML = s.products.filter(ShoeMafiaStore.inStock).map(function(p){return "<option value='"+p.id+"'>"+p.name+"</option>";}).join("");
+  updatePosSize();
+  document.getElementById("prodCat").innerHTML = s.categories.map(function(c){return "<option>"+c+"</option>";}).join("");
+  document.getElementById("prodBrand").innerHTML = s.brands.map(function(b){return "<option>"+b+"</option>";}).join("");
+  document.getElementById("couponList").innerHTML = s.coupons.map(function(c){return "<p>"+c.code+" "+c.discountPercent+"%</p>";}).join("");
+  document.getElementById("bannerList").innerHTML = s.banners.map(function(b){return "<p>"+b.title+" - "+(b.active?"active":"off")+"</p>";}).join("");
+  document.getElementById("custBody").innerHTML = s.customers.map(function(c){return "<tr><td>"+c.name+"</td><td>"+c.email+"</td><td>"+c.phone+"</td></tr>";}).join("")||"<tr><td colspan=3>No customers</td></tr>";
+  var on = s.orders.filter(function(o){return o.status!=="rejected";}).reduce(function(a,o){return a+o.total;},0);
+  var off = s.offlineSales.reduce(function(a,x){return a+x.total;},0);
+  document.getElementById("dashStats").innerHTML = "<div class='stat-card glass'><p>Products</p><p class='val'>"+s.products.length+"</p></div><div class='stat-card glass'><p>Revenue</p><p class='val'>"+ShoeMafiaStore.formatINR(on+off)+"</p></div><div class='stat-card glass'><p>Orders</p><p class='val'>"+s.orders.length+"</p></div><div class='stat-card glass'><p>Pending</p><p class='val'>"+s.orders.filter(function(o){return o.status==='pending';}).length+"</p></div>";
+}
+function renderPosCart() {
+  document.querySelector("#posCart tbody").innerHTML = posLines.map(function(l,i){
+    return "<tr><td>"+l.name+"</td><td>"+l.size+"</td><td>"+l.quantity+"</td><td>"+ShoeMafiaStore.formatINR(l.price*l.quantity)+"</td><td><button type='button' onclick='removePos("+i+")'>x</button></td></tr>";
+  }).join("");
+}
+window.removePos = function(i) { posLines.splice(i,1); renderPosCart(); };
+window.editP = function(id) { var p = ShoeMafiaStore.loadStore().products.find(function(x){return x.id===id;}); document.getElementById("prodId").value=p.id; document.getElementById("prodName").value=p.name; document.getElementById("prodImages").value=p.images.join("\n"); document.getElementById("prodPrice").value=p.price; document.getElementById("prodQty").value=ShoeMafiaStore.productStock(p); document.getElementById("prodDesc").value=p.description; };
+function updatePosSize() { var p = ShoeMafiaStore.loadStore().products.find(function(x){return x.id===document.getElementById("posProduct").value;}); var sizes = (p&&p.sizes&&p.sizes.length)?p.sizes:[{size:"Std",quantity:p?p.quantity:0}]; document.getElementById("posSize").innerHTML = sizes.filter(function(s){return s.quantity>0;}).map(function(s){return "<option>"+s.size+"</option>";}).join(""); }
+document.getElementById("posProduct").onchange = updatePosSize;
+document.getElementById("posAdd").onclick = function() {
+  var p = ShoeMafiaStore.loadStore().products.find(function(x){return x.id===document.getElementById("posProduct").value;});
+  if (!p) return;
+  var q = parseInt(document.getElementById("posQty").value, 10);
+  posLines.push({ productId:p.id, size:document.getElementById("posSize").value, quantity:q, name:p.name, price:ShoeMafiaStore.effectivePrice(p), image:p.images[0]||"" });
+  renderPosCart();
+};
+document.getElementById("bannerForm").onsubmit = function(e) {
+  e.preventDefault();
+  var s = ShoeMafiaStore.loadStore();
+  s.banners.push({ id: ShoeMafiaStore.uid(), title: document.getElementById("banTitle").value, subtitle: document.getElementById("banSub").value, image: document.getElementById("banImg").value, link: "shop.html", active: true });
+  ShoeMafiaStore.saveStore(s);
+  e.target.reset();
+  refresh();
+};
+document.getElementById("posBill").onclick = function() {
+  if (!posLines.length) return alert("Add items");
+  var sub = posLines.reduce(function(s,l){return s+l.price*l.quantity;},0), gst=sub*ShoeMafiaStore.GST_RATE, tot=sub+gst;
+  try {
+    var sale = ShoeMafiaStore.createOfflineSale({ customerName: document.getElementById("posName").value||"Walk-in", items: posLines, subtotal: sub, gst: gst, total: tot, paymentMethod: "Cash" });
+    document.getElementById("invoiceArea").innerHTML = "<div class='invoice-print'><h2>SHOE MAFIA</h2><p>Bilaspur CG 495001 | GST 18%</p><p>Invoice "+sale.invoiceNumber+"</p>"+posLines.map(function(l){return "<p>"+l.name+" "+l.size+" x"+l.quantity+" "+ShoeMafiaStore.formatINR(l.price*l.quantity)+"</p>";}).join("")+"<p><strong>Total "+ShoeMafiaStore.formatINR(tot)+"</strong></p></div>";
+    posLines=[]; refresh(); window.print();
+  } catch(e) { alert(e.message); }
+};
+document.getElementById("couponForm").onsubmit = function(e) { e.preventDefault(); var s=ShoeMafiaStore.loadStore(); s.coupons.push({ id:ShoeMafiaStore.uid(), code:document.getElementById("couponCode").value.toUpperCase(), discountPercent:parseInt(document.getElementById("couponPct").value,10), minOrder:0, active:true }); ShoeMafiaStore.saveStore(s); refresh(); };
+show();
+</script>
+</body>
+</html>

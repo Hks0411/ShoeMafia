@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product | SHOE MAFIA</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="site-nav"></div>
+<main class="section" style="padding-top:7rem"><div class="container" id="productRoot"></div></main>
+<div id="site-footer"></div>
+<script src="js/store.js"></script>
+<script src="js/common.js"></script>
+<script>
+SMCommon.renderNav("shop.html");
+var p = ShoeMafiaStore.loadStore().products.find(function(x) { return x.id === new URLSearchParams(location.search).get("id"); });
+var root = document.getElementById("productRoot");
+if (!p) { root.innerHTML = '<div class="empty-state"><h2>Not found</h2><a href="shop.html" class="btn btn-primary">Shop</a></div>'; }
+else {
+  SMCommon.addRecent(p.id);
+  var stock = ShoeMafiaStore.productStock(p);
+  var sizes = (p.sizes && p.sizes.length) ? p.sizes : ["UK 7","UK 8","UK 9","UK 10"].map(function(s) { return { size: s, quantity: Math.max(0, Math.floor(stock / 4)) }; });
+  var price = ShoeMafiaStore.effectivePrice(p);
+  root.innerHTML = '<div id="pgrid" style="display:grid;gap:2rem"><div class="glass" style="padding:2rem"><img id="mainImg" src="'+(p.images[0]||'')+'" style="width:100%;max-height:400px;object-fit:contain"></div><div><p class="section-label">'+(p.brand||'')+'</p><h1 style="font-family:var(--font-display);font-size:3rem">'+p.name+'</h1><p style="font-size:1.5rem;font-weight:700;margin:1rem 0">'+ShoeMafiaStore.formatINR(price)+'</p><p style="color:'+(stock?'var(--neon)':'var(--danger)')+'">'+(stock?stock+' in stock':'OUT OF STOCK')+'</p><p style="color:var(--muted);margin:1rem 0">'+p.description+'</p><div id="sizeBtns" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin:1rem 0"></div><button class="btn btn-primary" id="addBtn">Add to Cart</button> <button class="btn btn-outline" id="wishBtn">'+(SMCommon.isWish(p.id)?'Saved':'Wishlist')+'</button></div></div>';
+  if (window.innerWidth >= 900) document.getElementById("pgrid").style.gridTemplateColumns = "1fr 1fr";
+  var selected = null;
+  sizes.forEach(function(s) {
+    var btn = document.createElement("button");
+    btn.className = "btn btn-ghost";
+    btn.textContent = s.size + (s.quantity ? "" : " X");
+    btn.disabled = !s.quantity;
+    if (s.quantity) btn.onclick = function() { selected = s.size; document.querySelectorAll("#sizeBtns button").forEach(function(b) { b.style.borderColor = ""; }); btn.style.borderColor = "var(--neon)"; };
+    document.getElementById("sizeBtns").appendChild(btn);
+  });
+  document.getElementById("wishBtn").onclick = function() { SMCommon.toggleWish(p.id); location.reload(); };
+  document.getElementById("addBtn").onclick = function() {
+    if (!selected) return alert("Select size");
+    var r = SMCommon.addToCart(p.id, selected, 1);
+    if (r.ok) location.href = "cart.html"; else alert(r.error);
+  };
+}
+</script>
+</body>
+</html>

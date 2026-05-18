@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop | SHOE MAFIA</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="site-nav"></div>
+<main>
+<section class="page-hero"><div class="container"><p class="section-label">Collection</p><h1>ALL DROPS</h1></div></section>
+<section class="section" style="padding-top:0"><div class="container">
+<div style="display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+<input type="search" id="searchInput" placeholder="Search..." style="flex:1;min-width:180px;padding:0.9rem 1rem;background:var(--bg-elevated);border:1px solid var(--border);border-radius:99px;color:var(--text)">
+<select id="catFilter" style="padding:0.9rem;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;color:var(--text)"><option value="">Category</option></select>
+<select id="brandFilter" style="padding:0.9rem;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;color:var(--text)"><option value="">Brand</option></select>
+<select id="sortFilter" style="padding:0.9rem;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;color:var(--text)"><option value="new">Newest</option><option value="price-low">Price Low</option><option value="price-high">Price High</option></select>
+</div>
+<div class="product-grid" id="shopGrid"></div>
+</div></section>
+</main>
+<div id="site-footer"></div>
+<script src="js/store.js"></script>
+<script src="js/common.js"></script>
+<script>
+SMCommon.renderNav("shop.html");
+var params = new URLSearchParams(location.search);
+function renderShop() {
+  var store = ShoeMafiaStore.loadStore();
+  var products = store.products.slice();
+  if (!products.length) {
+    document.getElementById("shopGrid").innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h2>New drops coming soon.</h2><p style="color:var(--muted)">Check back or WhatsApp us.</p><a href="https://wa.me/917587555558" class="btn btn-primary" style="margin-top:1rem">WhatsApp</a></div>';
+    return;
+  }
+  var cat = params.get("category") || document.getElementById("catFilter").value;
+  var brand = document.getElementById("brandFilter").value;
+  var q = document.getElementById("searchInput").value.toLowerCase();
+  var f = params.get("filter");
+  if (f === "new") products = products.filter(function(p) { return p.isNewArrival; });
+  if (f === "trending") products = products.filter(function(p) { return p.isTrending; });
+  if (cat) products = products.filter(function(p) { return p.category === cat; });
+  if (brand) products = products.filter(function(p) { return p.brand === brand; });
+  if (q) products = products.filter(function(p) { return (p.name + p.brand).toLowerCase().includes(q); });
+  var sort = document.getElementById("sortFilter").value;
+  if (sort === "price-low") products.sort(function(a,b) { return ShoeMafiaStore.effectivePrice(a) - ShoeMafiaStore.effectivePrice(b); });
+  else if (sort === "price-high") products.sort(function(a,b) { return ShoeMafiaStore.effectivePrice(b) - ShoeMafiaStore.effectivePrice(a); });
+  document.getElementById("shopGrid").innerHTML = products.map(SMCommon.productCardHTML).join("");
+}
+var store = ShoeMafiaStore.loadStore();
+store.categories.forEach(function(c) { var o = document.createElement("option"); o.value = c; o.textContent = c; if (params.get("category") === c) o.selected = true; document.getElementById("catFilter").appendChild(o); });
+store.brands.forEach(function(b) { var o = document.createElement("option"); o.value = b; o.textContent = b; document.getElementById("brandFilter").appendChild(o); });
+["searchInput","catFilter","brandFilter","sortFilter"].forEach(function(id) { document.getElementById(id).addEventListener("input", renderShop); document.getElementById(id).addEventListener("change", renderShop); });
+renderShop();
+window.addEventListener("inventory-sync", renderShop);
+</script>
+</body>
+</html>

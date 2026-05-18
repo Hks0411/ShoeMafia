@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wishlist | SHOE MAFIA</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="site-nav"></div>
+<main class="section" style="padding-top:7rem">
+<div class="container">
+<h1 class="section-title">WISHLIST</h1>
+<div class="product-grid" id="wishGrid"></div>
+</div>
+</main>
+<div id="site-footer"></div>
+<script src="js/store.js"></script>
+<script src="js/common.js"></script>
+<script>
+SMCommon.renderNav("wishlist.html");
+var ids = SMCommon.getWishlist();
+var products = ShoeMafiaStore.loadStore().products.filter(function(p) { return ids.includes(p.id); });
+document.getElementById("wishGrid").innerHTML = products.length
+  ? products.map(SMCommon.productCardHTML).join("")
+  : '<div class="empty-state" style="grid-column:1/-1"><h2>No saved pairs yet</h2><a href="shop.html" class="btn btn-primary" style="margin-top:1rem">Explore Drops</a></div>';
+</script>
+</body>
+</html>

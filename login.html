@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Account | SHOE MAFIA</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="site-nav"></div>
+<main class="section" style="padding-top:7rem"><div class="container" style="max-width:440px"><h1 class="section-title" style="text-align:center">ACCOUNT</h1><div id="accountView" class="glass" style="padding:2rem"></div></div></main>
+<div id="site-footer"></div>
+<script src="js/store.js"></script>
+<script src="js/common.js"></script>
+<script>
+SMCommon.renderNav("login.html");
+var cust = SMCommon.getCustomer(), el = document.getElementById("accountView");
+if (cust) {
+  el.innerHTML = "<p>Welcome, <strong>"+cust.name+"</strong></p><button class='btn btn-outline' style='margin-top:1rem' onclick='localStorage.removeItem(\"sm_customer\");location.reload()'>Logout</button><p style='margin-top:1rem'><a href='admin.html'>Admin</a></p>";
+} else {
+  el.innerHTML = "<form id='regF'><div class='form-group'><label>Name</label><input id='rName' required></div><div class='form-group'><label>Email</label><input type='email' id='rEmail' required></div><div class='form-group'><label>Phone</label><input id='rPhone' required></div><div class='form-group'><label>Password</label><input type='password' id='rPass' required></div><button class='btn btn-primary' style='width:100%'>Register</button></form>";
+  document.getElementById("regF").onsubmit = function(e) {
+    e.preventDefault();
+    var store = ShoeMafiaStore.loadStore(), email = document.getElementById("rEmail").value;
+    if (store.customers.find(function(c) { return c.email === email; })) return alert("Exists");
+    var c = { id: ShoeMafiaStore.uid(), name: document.getElementById("rName").value, email: email, phone: document.getElementById("rPhone").value, passwordHash: ShoeMafiaStore.hashPass(document.getElementById("rPass").value), createdAt: new Date().toISOString() };
+    store.customers.push(c); ShoeMafiaStore.saveStore(store);
+    SMCommon.setCustomer({ id: c.id, name: c.name, email: c.email }); location.reload();
+  };
+}
+</script>
+</body>
+</html>
